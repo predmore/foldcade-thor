@@ -45,4 +45,9 @@ public class ParsersTest {
         assertNull(Parsers.appwatchRunning("enabled: yes\nprocesses: 123"));
         assertNull(Parsers.appwatchRunning("daemon: running evil"));
     }
+    @Test public void stickfxRefusalForBlackColours() throws Exception {
+        assertTrue(Parsers.needsColor(fixture("stickfx-charge-no-color")));
+        assertTrue(Parsers.needsColor("stickfx: every LED colour is \"0 0 0\" -- pass --color RRGGBB or set one in AynParts"));
+        assertFalse(Parsers.needsColor("permission denied"));
+    }
 }

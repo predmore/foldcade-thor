@@ -86,7 +86,14 @@ final class DeviceController {
             if (!"granted".equals(root.state())) throw new Failure("no_root", "Open Foldcade Thor or refresh its state after granting root");
             switch (method) {
                 case "fan.set" -> { require(fanCap); games().setFan(fan); }
-                case "lights.set" -> { require(lightsCap); execute(Commands.lights(lights)); verifyLights(lights); }
+                case "lights.set" -> {
+                    require(lightsCap);
+                    RootRunner.Result r = root.run(Commands.lights(lights));
+                    // stickfx refuses a lit effect while every stick colour is black; say so, so the host can explain it.
+                    if (r.code() != 0 && Parsers.needsColor(r.out())) throw new Failure("needs_color", "Every stick LED colour is black");
+                    if (r.code() != 0) throw new Failure("failed", "Command failed: " + Commands.lights(lights));
+                    verifyLights(lights);
+                }
                 case "brightness.set" -> {
                     require(brightnessCap);
                     execute(brightnessSet(panel == Panel.TOP ? Display.DEFAULT_DISPLAY : bottomId, brightness));

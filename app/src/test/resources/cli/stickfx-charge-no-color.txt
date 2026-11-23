@@ -1,0 +1,6 @@
+! every stick LED colour is "0 0 0", so a charging trigger
+! would drive an invisible LED.
+!
+! Either configure colours in Settings -> AYN -> RGB lighting
+! (AynParts owns the colour channel), or pass a colour here:
+!     stickfx charge --color 2BE0D8

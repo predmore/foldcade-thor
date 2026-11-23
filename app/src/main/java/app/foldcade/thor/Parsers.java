@@ -31,6 +31,8 @@ public final class Parsers {
             return Float.isFinite(n) && n >= 0 && n <= 1 ? n : null;
         } catch (NumberFormatException e) { return null; }
     }
+    /** stickfx's refusal when every stick LED colour is "0 0 0". */
+    public static boolean needsColor(String out) { return out.matches("(?s).*every (stick )?LED colour is \"0 0 0\".*"); }
     public static Boolean appwatchRunning(String out) {
         Matcher m = Pattern.compile("(?m)^daemon:\\s*(running(?: \\(\\d+\\))?|not running)\\s*$").matcher(out);
         return m.find() ? m.group(1).startsWith("running") : null;
