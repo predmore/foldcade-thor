@@ -96,7 +96,13 @@ final class RootSession implements RootRunner, AutoCloseable {
         if (su == null) return new Result(-1, "Root has not been probed");
         if (open()) {
             try { return trace(command, exchange(command)); }
-            catch (Exception e) { retire(e); }
+            catch (Exception e) {
+                // The command may still be running in the old shell, so it is never re-run.
+                // The next command opens a fresh session.
+                Log.w(TAG, "Root command failed; session closed", e);
+                close();
+                return trace(command, new Result(-1, "Root command failed or timed out"));
+            }
         }
         return trace(command, oneShot(command));
     }

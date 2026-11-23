@@ -17,7 +17,8 @@ public class GameOverridesTest {
     }
     static class Fake implements RootRunner {
         Fan fan = Fan.BALANCED, appwatchBaseline;
-        boolean running = true, missing, ignoreFanWrites;
+        boolean running = true, missing, ignoreFanWrites, startMissing;
+        Fan fanWhenAppwatchStarted;
         Command fail;
         Memory store;
         final List<Command> calls = new ArrayList<>();
@@ -27,7 +28,10 @@ public class GameOverridesTest {
             if (c.equals(FAN_GET)) return new Result(0, fan.wire + "\n");
             if (c.equals(APPWATCH_STATUS)) return missing ? new Result(127, "not found") : new Result(0, "daemon: " + (running ? "running (3210)" : "not running") + "\nenabled: yes\n");
             if (c.equals(APPWATCH_STOP)) { running = false; if (appwatchBaseline != null) fan = appwatchBaseline; return new Result(0, ""); }
-            if (c.equals(APPWATCH_START)) { running = true; return new Result(0, ""); }
+            if (c.equals(APPWATCH_START)) {
+                if (startMissing) return new Result(127, "not found");
+                running = true; fanWhenAppwatchStarted = fan; return new Result(0, "");
+            }
             for (Fan f : Fan.values()) if (c.equals(Commands.fan(f))) {
                 // Recovery must be saved before the game is applied.
                 if (f == Fan.PERFORMANCE && store != null) assertNotNull(store.value);
@@ -116,6 +120,15 @@ public class GameOverridesTest {
         assertEquals(Fan.QUIET, root.fan); assertNull(g.active()); assertTrue(root.running);
         assertFalse(root.calls.subList(start, root.calls.size()).contains(Commands.fan(Fan.BALANCED)));
         root.calls.clear(); assertFalse(g.end()); assertTrue(root.calls.isEmpty());
+    }
+    @Test public void manualFanIsWrittenBeforeAppwatchRecordsItsBaseline() throws Exception {
+        GameOverrides g = game(); g.begin(Fan.PERFORMANCE); g.setFan(Fan.BALANCED);
+        assertEquals(Fan.BALANCED, root.fanWhenAppwatchStarted); assertNull(store.value);
+    }
+    @Test public void appwatchRemovedDuringGameStillEndsTheOverride() throws Exception {
+        GameOverrides g = game(); root.appwatchBaseline = Fan.QUIET; g.begin(Fan.PERFORMANCE); root.startMissing = true;
+        assertTrue(g.end()); assertNull(store.value); assertEquals(Fan.QUIET, root.fan);
+        g.begin(Fan.PERFORMANCE); g.setFan(Fan.BALANCED); assertNull(store.value);
     }
     @Test public void manualFanWithoutAppwatchLeavesDaemonOff() throws Exception {
         root.running = false; GameOverrides g = game(); g.begin(Fan.PERFORMANCE); g.setFan(Fan.QUIET);

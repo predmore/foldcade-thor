@@ -13,7 +13,7 @@ public final class Parsers {
         Boolean top = panel(out, "top"), bottom = panel(out, "bottom");
         if (top == null || bottom == null) return null;
         // Sleep blanks both panels outside screenblank's control. Both light on wake.
-        if (!top && !bottom) return out.contains("device is Dozing") ? Commands.Screens.DUAL : null;
+        if (!top && !bottom) return Pattern.compile("(?m)^note\\s*:\\s*device is ").matcher(out).find() ? Commands.Screens.DUAL : null;
         return top && bottom ? Commands.Screens.DUAL : top ? Commands.Screens.TOP : Commands.Screens.BOTTOM;
     }
     private static Boolean panel(String out, String name) {
@@ -31,6 +31,8 @@ public final class Parsers {
             return Float.isFinite(n) && n >= 0 && n <= 1 ? n : null;
         } catch (NumberFormatException e) { return null; }
     }
+    /** stickfx's refusal when every stick LED colour is "0 0 0". */
+    public static boolean needsColor(String out) { return out.matches("(?s).*every (stick )?LED colour is \"0 0 0\".*"); }
     public static Boolean appwatchRunning(String out) {
         Matcher m = Pattern.compile("(?m)^daemon:\\s*(running(?: \\(\\d+\\))?|not running)\\s*$").matcher(out);
         return m.find() ? m.group(1).startsWith("running") : null;

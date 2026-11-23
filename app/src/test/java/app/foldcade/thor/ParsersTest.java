@@ -21,6 +21,8 @@ public class ParsersTest {
         assertTrue(dozing.contains("device is Dozing"));
         assertEquals(Commands.Screens.DUAL, Parsers.screens(awake));
         assertEquals(Commands.Screens.DUAL, Parsers.screens(dozing));
+        // screenblank prints the note for every state but Awake.
+        assertEquals(Commands.Screens.DUAL, Parsers.screens(dozing.replace("device is Dozing", "device is Asleep")));
         assertEquals(Commands.Screens.BOTTOM, Parsers.screens(awake.replace("top     screen : on", "top     screen : OFF")));
         assertEquals(Commands.Screens.TOP, Parsers.screens(awake.replace("bottom  screen : on", "bottom  screen : OFF")));
         assertNull(Parsers.screens("permission denied"));
@@ -42,5 +44,10 @@ public class ParsersTest {
         assertEquals(Boolean.FALSE, Parsers.appwatchRunning(status.replaceFirst("daemon:.*", "daemon:    not running")));
         assertNull(Parsers.appwatchRunning("enabled: yes\nprocesses: 123"));
         assertNull(Parsers.appwatchRunning("daemon: running evil"));
+    }
+    @Test public void stickfxRefusalForBlackColours() throws Exception {
+        assertTrue(Parsers.needsColor(fixture("stickfx-charge-no-color")));
+        assertTrue(Parsers.needsColor("stickfx: every LED colour is \"0 0 0\" -- pass --color RRGGBB or set one in AynParts"));
+        assertFalse(Parsers.needsColor("permission denied"));
     }
 }

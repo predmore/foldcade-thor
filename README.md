@@ -62,7 +62,7 @@ fanctl get
 fanctl quiet|balanced|performance
 fanctl default                         # restore a recorded stock baseline only
 stickfx get
-stickfx off|charge|breathe|usb
+stickfx off|charge|breathe|usb           # charge and breathe refuse black stick colours: needs_color
 screenblank status
 screenblank on top|bottom
 screenblank off top|bottom

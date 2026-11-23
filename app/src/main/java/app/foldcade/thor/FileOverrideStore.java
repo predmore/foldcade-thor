@@ -22,7 +22,12 @@ final class FileOverrideStore implements GameOverrides.Store {
             if (version != 1 || tier == null || baseline == null) throw new IOException("Invalid override record");
             return new GameOverrides.Override(tier, baseline, running);
         } catch (FileNotFoundException e) { return null; }
-        catch (IOException e) { throw new Failure("internal", "Cannot read saved game override"); }
+        catch (IOException e) {
+            // Nothing can be restored from an unreadable record; drop it so every method keeps working.
+            android.util.Log.w("FoldcadeThor", "Dropping unreadable game override", e);
+            file.delete();
+            return null;
+        }
     }
     @Override public void save(GameOverrides.Override value) throws Failure {
         if (value == null) {
