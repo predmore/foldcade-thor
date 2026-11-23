@@ -1,0 +1,60 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.repository == 'predmore/foldcade-thor'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/android
+      - name: Require signing secrets and decode keystore
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in RELEASE_KEYSTORE_BASE64 RELEASE_KEYSTORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD; do
+            test -n "${!name//[[:space:]]/}" || { echo "::error::Missing $name"; exit 1; }
+          done
+          umask 077
+          printf '%s' "$RELEASE_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > "$RUNNER_TEMP/thor.keystore"
+          test -s "$RUNNER_TEMP/thor.keystore"
+          echo "RELEASE_KEYSTORE_FILE=$RUNNER_TEMP/thor.keystore" >> "$GITHUB_ENV"
+      - name: Check release version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: bash .github/release/version.sh
+      - name: Build signed release, lint and test
+        env:
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: ./gradlew -PthorVersionCode="$VERSION_CODE" :app:testDebugUnitTest :app:lintRelease :app:assembleRelease
+      - name: Verify signature and APK version
+        run: bash .github/release/verify.sh app/build/outputs/apk/release/app-release.apk
+      - name: Publish one APK as the latest full release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: bash .github/release/publish.sh "$RUNNER_TEMP/foldcade-thor.apk"
+      - name: Remove signing material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/thor.keystore"

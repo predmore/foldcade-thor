@@ -1,0 +1,4 @@
+top     screen : on    touch enabled   backlight /sys/class/backlight/panel0-backlight
+        touch  : /sys/class/input/input29/device
+bottom  screen : on    touch enabled   backlight /sys/class/backlight/panel1-backlight
+        touch  : /sys/class/input/input28/device

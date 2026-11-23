@@ -1,0 +1,27 @@
+name: Android toolchain
+description: Install the SDK packages used by Foldcade Thor
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v6
+      with:
+        distribution: temurin
+        java-version: '21'
+    - name: Install Android SDK
+      shell: bash
+      run: |
+        set -euo pipefail
+        sdk_root="$HOME/android-sdk"
+        tmp="$(mktemp -d)"
+        curl -fsSL -o "$tmp/tools.zip" https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip
+        unzip -q "$tmp/tools.zip" -d "$tmp"
+        mkdir -p "$sdk_root/cmdline-tools"
+        mv "$tmp/cmdline-tools" "$sdk_root/cmdline-tools/latest"
+        manager="$sdk_root/cmdline-tools/latest/bin/sdkmanager"
+        yes | "$manager" --sdk_root="$sdk_root" --licenses >/dev/null || true
+        "$manager" --sdk_root="$sdk_root" --install 'platforms;android-37.0' 'build-tools;37.0.0' 'platform-tools'
+        echo "ANDROID_HOME=$sdk_root" >> "$GITHUB_ENV"
+        echo "ANDROID_SDK_ROOT=$sdk_root" >> "$GITHUB_ENV"
+    - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+      with:
+        cache-read-only: ${{ github.event_name != 'push' || startsWith(github.ref, 'refs/tags/') }}

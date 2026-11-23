@@ -1,0 +1,5 @@
+top screen    : display 0
+bottom screen : display 1
+focused       : display 1
+movable on top    : <none, launcher only>
+movable on bottom : <none, launcher only>

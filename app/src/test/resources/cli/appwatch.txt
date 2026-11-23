@@ -1,0 +1,7 @@
+daemon:    running (3210)
+processes: 3210 3773
+enabled:   yes
+fanctl:    balanced
+baseline:  
+applied:   
+overrides: 0

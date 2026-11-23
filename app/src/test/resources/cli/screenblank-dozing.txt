@@ -1,0 +1,8 @@
+note    : device is Dozing - while the screen is off the
+          driver blanks both panels and disables both digitisers itself.
+          These readings only mean something while awake.
+
+top     screen : OFF   touch disabled  backlight /sys/class/backlight/panel0-backlight
+        touch  : /sys/class/input/input29/device
+bottom  screen : OFF   touch disabled  backlight /sys/class/backlight/panel1-backlight
+        touch  : /sys/class/input/input28/device
