@@ -13,7 +13,7 @@ public final class Parsers {
         Boolean top = panel(out, "top"), bottom = panel(out, "bottom");
         if (top == null || bottom == null) return null;
         // Sleep blanks both panels outside screenblank's control. Both light on wake.
-        if (!top && !bottom) return out.contains("device is Dozing") ? Commands.Screens.DUAL : null;
+        if (!top && !bottom) return Pattern.compile("(?m)^note\\s*:\\s*device is ").matcher(out).find() ? Commands.Screens.DUAL : null;
         return top && bottom ? Commands.Screens.DUAL : top ? Commands.Screens.TOP : Commands.Screens.BOTTOM;
     }
     private static Boolean panel(String out, String name) {

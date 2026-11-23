@@ -21,6 +21,11 @@ public final class GameOverrides {
     private void execute(Command command) throws Failure {
         if (root.run(command).code() != 0) throw new Failure("failed", "Command failed: " + command);
     }
+    /** A module removed since the game began (exit 127) leaves nothing to restart. */
+    private void startAppwatch() throws Failure {
+        int code = root.run(APPWATCH_START).code();
+        if (code != 0 && code != 127) throw new Failure("failed", "Command failed: " + APPWATCH_START);
+    }
     public Fan readFan() throws Failure {
         RootRunner.Result r = root.run(FAN_GET);
         Fan f = r.code() == 0 ? Parsers.fan(r.out()) : null;
@@ -62,19 +67,20 @@ public final class GameOverrides {
         Override old = active;
         if (old == null) return false;
         if (readFan() == old.tier()) writeFan(old.baseline());
-        if (old.appwatchWasRunning()) execute(APPWATCH_START);
+        if (old.appwatchWasRunning()) startAppwatch();
         persist(null);
         return true;
     }
     public void setFan(Fan fan) throws Failure {
         if (fan == null || fan == Fan.DEFAULT) throw new Failure("bad_request", "Unknown fan tier");
         Override old = active;
+        // Write first. appwatch's start-up pass records `fanctl get` as its baseline, so it
+        // must read the user's choice, not the game's tier. If the process dies before the
+        // record clears, game.end sees the fan off the game's tier, keeps it, and restarts appwatch.
+        writeFan(fan);
         if (old != null) {
-            if (old.appwatchWasRunning()) execute(APPWATCH_START);
+            if (old.appwatchWasRunning()) startAppwatch();
             persist(null);
         }
-        // End ownership before the write. A later game.end must never undo this choice.
-        // Appwatch's start-up pass runs first, then the explicit user choice wins.
-        writeFan(fan);
     }
 }

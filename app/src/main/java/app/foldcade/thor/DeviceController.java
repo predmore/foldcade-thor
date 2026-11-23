@@ -73,7 +73,8 @@ final class DeviceController {
                 }
                 case "game.end" -> {
                     if (games().active() == null) {
-                        Bundle b = cached == null ? emptyState() : new Bundle(cached);
+                        // A fresh process has no cached state; probe once rather than report root as denied.
+                        Bundle b = initialized && cached != null ? new Bundle(cached) : state(false);
                         b.putBoolean("restored", false); return b;
                     }
                 }
