@@ -1,0 +1,9 @@
+Foldcade Thor
+Copyright 2026 Caleb Predmore
+
+RootSession.java and RootProtocol.java are derived from thor-features by Wingdom
+(https://github.com/Wingdom/thor-features), licensed under Apache License 2.0.
+The screen status parsing and ordered panel control also follow that project's
+thor-screenpanel command contract. No Magisk modules or binaries are bundled.
+
+This product includes software developed by Wingdom for thor-features.
