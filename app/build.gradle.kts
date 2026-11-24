@@ -18,9 +18,9 @@ android {
     defaultConfig {
         applicationId = "app.foldcade.thor"
         minSdk = 33
-        targetSdk = 33
+        targetSdk = 35
         versionCode = code
-        versionName = "0.1.0"
+        versionName = "0.1.1"
     }
     buildFeatures { buildConfig = true }
     if (canSign) signingConfigs.create("release") {

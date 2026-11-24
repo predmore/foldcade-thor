@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowInsets;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -25,6 +26,13 @@ public final class MainActivity extends Activity {
         content = new LinearLayout(this); content.setOrientation(LinearLayout.VERTICAL);
         int padding = dp(28); content.setPadding(padding, padding, padding, padding);
         scroll.addView(content); setContentView(scroll);
+        // Targeting API 35 draws under the status and navigation bars, so the page pads itself clear of them.
+        scroll.setOnApplyWindowInsetsListener((view, insets) -> {
+            android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return WindowInsets.CONSUMED;
+        });
+        scroll.setClipToPadding(false);
         text("FOLDCADE / DEVICE PLUGIN", 12, "#A3D9BA", 0);
         text("Foldcade Thor", 30, "#F0F5F1", 10);
         text("Device controls for your AYN Thor.", 16, "#B5C2BA", 8);
