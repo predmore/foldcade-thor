@@ -113,7 +113,7 @@ Gradle 9.6.0 wrapper uses AGP 9.4.1. There are no third-party runtime libraries.
 ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
 ```
 
-The app targets API 33. Debug uses `app.foldcade.thor.debug`; release uses
+The app targets API 35, so Foldcade can update it without a prompt on Android 17. Debug uses `app.foldcade.thor.debug`; release uses
 `app.foldcade.thor`. Release builds require `RELEASE_KEYSTORE_FILE`,
 `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD`.
 A deliberate unsigned validation build uses `-PthorAllowUnsigned=true`.
